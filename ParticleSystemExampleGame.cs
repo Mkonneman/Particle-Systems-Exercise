@@ -4,10 +4,18 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ParticleSystemExercise;
 
-public class ParticleSystemExampleGame : Game
+public class ParticleSystemExampleGame : Game, IParticleEmitter
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
+
+    MouseState _priorMouse;
+    ExplosionParticleSystem _explosion;
+    FireworkParticleSystem _fireworks;
+
+    public Vector2 Position { get; set; }
+
+    public Vector2 Velocity { get; set; }
 
     public ParticleSystemExampleGame()
     {
@@ -19,6 +27,17 @@ public class ParticleSystemExampleGame : Game
     protected override void Initialize()
     {
         // TODO: Add your initialization logic here
+        RainParticalSystem rain = new RainParticalSystem(this, new Rectangle(100, -20, 500, 10));
+        Components.Add(rain);
+
+        _explosion = new ExplosionParticleSystem(this, 20);
+        Components.Add(_explosion);
+
+        _fireworks = new FireworkParticleSystem(this, 20);
+        Components.Add(_fireworks);
+
+        PixieParticleSystem pixie = new PixieParticleSystem(this, this);
+        Components.Add(pixie);
 
         base.Initialize();
     }
@@ -36,7 +55,24 @@ public class ParticleSystemExampleGame : Game
             Exit();
 
         // TODO: Add your update logic here
+        MouseState currentMouse = Mouse.GetState();
+        Vector2 mousePosition = new Vector2(currentMouse.X, currentMouse.Y);
 
+
+        if (currentMouse.LeftButton == ButtonState.Pressed && _priorMouse.LeftButton == ButtonState.Released)
+        {
+            _explosion.PlaceExplosion(mousePosition);
+        }
+
+        if (currentMouse.RightButton == ButtonState.Pressed && _priorMouse.RightButton == ButtonState.Released)
+        {
+            _fireworks.PlaceFirework(mousePosition);
+        }
+        
+        Velocity = mousePosition - Position;
+        Position = mousePosition;
+
+        _priorMouse = currentMouse;
         base.Update(gameTime);
     }
 
